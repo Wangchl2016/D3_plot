@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8">
+<script src="../lib/d3.v3.min.js"></script>
+
+<html>
+    <head>
+    	<style type="text/css">
+            .axis path,
+			.axis line {
+			    fill: none;
+			    stroke: black;
+			    shape-rendering: crispEdges;
+			}
+
+			.axis text {
+			    font-family: sans-serif;
+			    font-size: 11px;
+			}
+		</style>
+
+
+    </head>
+    <body>
+    	<script type="text/javascript">
+
+		// load the data
+		d3.csv("diabetes.csv",function(data){
+
+
+			dataset = [];
+			data_pos = [];
+			data_neg = [];
+			//set parameters
+			var w = 1000;
+			var h = 600;
+			var padding = 100;
+
+
+		    data.forEach(function(d){
+		    	d.plasma_glucose = + d.plasma_glucose
+	    		d.insulin = + d.insulin
+	    		d.bmi = + d.bmi
+	    		d.blood_pressure = + d.blood_pressure
+
+		    	dataset.push([d.plasma_glucose, d.insulin, d.bmi, d.blood_pressure])
+		    	if( d.class == 1)
+		    		data_pos.push([d.plasma_glucose, d.insulin, d.bmi, d.blood_pressure])
+		    	if( d.class == 0)
+		    		data_neg.push([d.plasma_glucose, d.insulin, d.bmi, d.blood_pressure])
+
+		    })          
+		    console.log("dataset",dataset);
+		    console.log("data_pos",data_pos);
+		    console.log("data_neg",data_neg);
+
+		    // define scale
+			var xScale = d3.scale.linear()
+	                       		 .domain([0, 200])
+	                       		 //.domain([0, d3.max(dataset, function(d) { return d[0] })]).nice()
+	                       		 .range([padding, w - padding]);
+
+	        var yScale = d3.scale.linear()
+	                     		 //.domain([0, d3.max(dataset, function(d) { return d[1] })]).nice()
+	                     		 .domain([0, 1000])
+	                     		 .range([h - padding, padding]);
+
+	        // define axis
+            var xAxis = d3.svg.axis()
+			                  //.scale(xScale)
+			                  .scale(xScale)
+			                  .orient("bottom")
+			                  .ticks(10);
+ 
+
+			var yAxis = d3.svg.axis()
+	                  		  .scale(yScale)
+	                  		  .orient("left")
+	                  		  .ticks(10);
+	                 		  
+
+	        // create SVG
+			var svg = d3.select("body")
+			            .append("svg")
+			            .attr("width", w)
+			            .attr("height", h);
+
+	        // draw axis        		  
+	        svg.append("g")
+			   .attr("class", "axis")
+			   .attr("transform", "translate(0," + (h - padding) + ")")
+			   .call(xAxis);
+			   
+			svg.append("g")
+			   .attr("class", "axis")
+			   .attr("transform", "translate(" + padding + ",0)")
+			   .call(yAxis);
+
+			// draw data points
+			
+		    svg.selectAll("circle")
+			   .data(data_neg)
+			   .enter()
+			   .append("circle")
+			   .attr("stroke","blue")
+			   .attr("fill","none")
+			   .attr("cx", function(d) {
+	        		return xScale(d[0]);
+	   			})
+	   		   .attr("cy", function(d) {
+	         		return yScale(d[1]);
+	   			})
+	   		   .attr("r", 5);
+			
+	   		// triangle
+	   		svg.selectAll("polygon")
+			   .data(data_pos)
+			   .enter()
+			   .append("polygon")
+			   .style("stroke","red")
+			   .attr("fill","none")
+			   .attr("points", function(d){
+				   	var top_X = String(xScale(d[0]));
+		   			
+		   			var top_Y = String(yScale(d[1])-5);
+		   			
+		   			var left_X = String(xScale(d[0])-5);
+		   			
+		   			var left_Y = String(yScale(d[1])+5);
+		   			
+		   			var right_X = String(xScale(d[0])+5);
+		   			
+		   			var right_Y = String(yScale(d[1])+5);
+		   				var val = top_X + "," + top_Y + "," + left_X + "," + left_Y + "," + right_X + "," + right_Y;
+		   				console.log(val);
+		   				return val
+				   });
+
+
+			/*
+
+	        legend = svg.append("g")
+            				.attr("class","legend")
+	       					.append("circle")
+	            			.attr("cx",850)
+	            			.attr("cy",50)
+	            			.attr("r",10)
+	            			.attr("fill","none")
+	            			.attr("stroke","blue")
+	            			
+	            	legend	.append("text")
+              			.attr("x",80)
+              			.attr("y",50)
+              			.text("negative");
+
+	              	legend	.append("text")
+	              			.attr("x",800)
+	              			.attr("y",50)
+	              			.text("positive");          				
+	        */ 			
+
+
+			// second graph
+
+			var svg = d3.select("body")
+            			.append("svg")
+            			.attr("width", w)
+            			.attr("height", h);
+
+
+            var xScale = d3.scale.linear()
+	                       		 .domain([0, 70])
+	                       		 //.domain([0, d3.max(dataset, function(d) { return d[0] })]).nice()
+	                       		 .range([padding, w - padding]);
+
+	        var yScale = d3.scale.linear()
+	                     		 //.domain([0, d3.max(dataset, function(d) { return d[1] })]).nice()
+	                     		 .domain([0, 130])
+	                     		 .range([h - padding, padding]);
+
+
+           	var xAxis = d3.svg.axis()
+			                  //.scale(xScale)
+			                  .scale(xScale)
+			                  .orient("bottom")
+			                  .ticks(10);
+ 
+
+			var yAxis = d3.svg.axis()
+	                  		  .scale(yScale)
+	                  		  .orient("left")
+	                  		  .ticks(10);
+
+
+	        svg.append("g")
+			   .attr("class", "axis")
+			   .attr("transform", "translate(0," + (h - padding) + ")")
+			   .call(xAxis);
+			   
+			svg.append("g")
+			   .attr("class", "axis")
+			   .attr("transform", "translate(" + padding + ",0)")
+			   .call(yAxis);
+
+
+			svg.selectAll("circle")
+			   .data(data_neg)
+			   .enter()
+			   .append("circle")
+			   .attr("stroke","blue")
+			   .attr("fill","none")
+			   .attr("cx", function(d) {
+	        		return xScale(d[2]);
+	   			})
+	   		   .attr("cy", function(d) {
+	         		return yScale(d[3]);
+	   			})
+	   		   .attr("r", 5);
+			
+	   		// triangle
+	   		svg.selectAll("polygon")
+			   .data(data_pos)
+			   .enter()
+			   .append("polygon")
+			   .style("stroke","red")
+			   .attr("fill","none")
+			   .attr("points", function(d){
+				   	var top_X = String(xScale(d[2]));
+		   			
+		   			var top_Y = String(yScale(d[3])-5);
+		   			
+		   			var left_X = String(xScale(d[2])-5);
+		   			
+		   			var left_Y = String(yScale(d[3])+5);
+		   			
+		   			var right_X = String(xScale(d[2])+5);
+		   			
+		   			var right_Y = String(yScale(d[3])+5);
+		   				var val = top_X + "," + top_Y + "," + left_X + "," + left_Y + "," + right_X + "," + right_Y;
+		   				console.log(val);
+		   				return val
+				   });
+
+
+			// third graph
+
+			var svg = d3.select("body")
+            			.append("svg")
+            			.attr("width", w)
+            			.attr("height", h);
+
+
+            var xScale = d3.scale.linear()
+	                       		 .domain([0, 200])
+	                       		 //.domain([0, d3.max(dataset, function(d) { return d[0] })]).nice()
+	                       		 .range([padding, w - padding]);
+
+	        var yScale = d3.scale.linear()
+	                     		 //.domain([0, d3.max(dataset, function(d) { return d[1] })]).nice()
+	                     		 .domain([0, 1000])
+	                     		 .range([h - padding, padding]);
+
+
+           	var xAxis = d3.svg.axis()
+			                  //.scale(xScale)
+			                  .scale(xScale)
+			                  .orient("bottom")
+			                  .ticks(10);
+ 
+
+			var yAxis = d3.svg.axis()
+	                  		  .scale(yScale)
+	                  		  .orient("left")
+	                  		  .ticks(10);
+
+
+	        svg.append("g")
+			   .attr("class", "axis")
+			   .attr("transform", "translate(0," + (h - padding) + ")")
+			   .call(xAxis);
+			   
+			svg.append("g")
+			   .attr("class", "axis")
+			   .attr("transform", "translate(" + padding + ",0)")
+			   .call(yAxis);
+
+
+			svg.selectAll("circle")
+			   .data(data_neg)
+			   .enter()
+			   .append("circle")
+			   .attr("stroke","blue")
+			   .attr("fill","none")
+			   .attr("cx", function(d) {
+	        		return xScale(d[0]);
+	   			})
+	   		   .attr("cy", function(d) {
+	         		return yScale(d[1]);
+	   			})
+	   		   .attr("r", function(d) {
+	        		return (d[0] * d[1])/10000 ;
+	   			});
+
+	   		// triangle
+	   		svg.selectAll("polygon")
+			   .data(data_pos)
+			   .enter()
+			   .append("polygon")
+			   .style("stroke","red")
+			   .attr("fill","none")
+			   .attr("points", function(d){
+				   	var top_X = String(xScale(d[0]) );
+		   			
+		   			var top_Y = String(yScale(d[1]) - 1- (d[0] * d[1])/10000 );
+		   			
+		   			var left_X = String(xScale(d[0]) - 1- (d[0] * d[1])/10000);
+		   			
+		   			var left_Y = String(yScale(d[1]) + 1 + (d[0] * d[1])/10000);
+		   			
+		   			var right_X = String(xScale(d[0])+ 1 + (d[0] * d[1])/10000);
+		   			
+		   			var right_Y = String(yScale(d[1]) + 1+ (d[0] * d[1])/10000);
+		   				var val = top_X + "," + top_Y + "," + left_X + "," + left_Y + "," + right_X + "," + right_Y;
+		   				console.log(val);
+		   				return val
+				   });
+
+
+			// graph 4 for square root
+
+
+			var svg = d3.select("body")
+            			.append("svg")
+            			.attr("width", w)
+            			.attr("height", h);
+
+          	
+          	
+            var xScale = d3.scale.linear()
+	                       		 .domain([0,200])	                       		 
+	                       		 .range([padding, w - padding]);
+
+	        var yScale_sqrt = d3.scale.sqrt()
+	                     		 .domain([0,1000])
+	                     		 .range([h - padding, padding]);
+
+			
+
+
+           	var xAxis = d3.svg.axis()
+			                  //.scale(xScale)
+			                  .scale(xScale)
+			                  .orient("bottom")
+			                  .ticks(10);
+ 
+
+			var yAxis_sqrt = d3.svg.axis()
+	                  		  .scale(yScale_sqrt)
+	                  		  .orient("left")
+	                  		  //.ticks(10);
+
+
+	        svg.append("g")
+			   .attr("class", "axis")
+			   .attr("transform", "translate(0," + (h - padding) + ")")
+			   .call(xAxis);
+			   
+			svg.append("g")
+			   .attr("class", "axis")
+			   .attr("transform", "translate(" + padding + ",0)")
+			   .call(yAxis_sqrt);
+
+
+			svg.selectAll("circle")
+			   .data(data_neg)
+			   .enter()
+			   .append("circle")
+			   .attr("stroke","blue")
+			   .attr("fill","none")
+			   .attr("cx", function(d) {
+	        		return xScale(d[0]);
+	   			})
+	   		   .attr("cy", function(d) {
+	         		return yScale_sqrt(d[1]);
+	   			})
+	   		   .attr("r", function(d) {
+	        		return 5;
+	   			});
+
+	   		// triangle
+	   		svg.selectAll("polygon")
+			   .data(data_pos)
+			   .enter()
+			   .append("polygon")
+			   .style("stroke","red")
+			   .attr("fill","none")
+			   .attr("points", function(d){
+				   	var top_X = String(xScale(d[0]) );
+		   			
+		   			var top_Y = String(yScale_sqrt(d[1]) - 5);
+		   			
+		   			var left_X = String(xScale(d[0]) -5 );
+		   			
+		   			var left_Y = String(yScale_sqrt(d[1]) + 5);
+		   			
+		   			var right_X = String(xScale(d[0])+ 5);
+		   			
+		   			var right_Y = String(yScale_sqrt(d[1]) + 5);
+		   				var val = top_X + "," + top_Y + "," + left_X + "," + left_Y + "," + right_X + "," + right_Y;
+		   				console.log(val);
+		   				return val
+				   });
+
+
+
+			// graph 5  for log
+
+
+			var svg = d3.select("body")
+            			.append("svg")
+            			.attr("width", w)
+            			.attr("height", h);
+
+
+            var xScale = d3.scale.linear()
+	                       		 .domain([0, 200])
+	                       		 //.domain([0, d3.max(dataset, function(d) { return d[0] })]).nice()
+	                       		 .range([padding, w - padding]);
+
+			var yScale_log = d3.scale.log()
+						   		 .domain([1, 1000])
+								 .range([h-padding, padding]);
+
+
+           	var xAxis = d3.svg.axis()
+			                  .scale(xScale)
+			                  .orient("bottom")
+			                  .ticks(10);
+ 
+
+			var yAxis_log = d3.svg.axis()
+	                  		  .scale(yScale_log)
+	                  		  .orient("left")
+	                  		  //.ticks(10);
+
+
+	        svg.append("g")
+			   .attr("class", "axis")
+			   .attr("transform", "translate(0," + (h - padding) + ")")
+			   .call(xAxis);
+			   
+			svg.append("g")
+			   .attr("class", "axis")
+			   .attr("transform", "translate(" + padding + ",0)")
+			   .call(yAxis_log);
+
+
+			svg.selectAll("circle")
+			   .data(data_neg)
+			   .enter()
+			   .append("circle")
+			   .attr("stroke","blue")
+			   .attr("fill","none")
+			   .attr("cx", function(d) {
+	        		return xScale(d[0]);
+	   			})
+	   		   .attr("cy", function(d) {
+	         		return yScale_log(d[1] + 1);
+	   			})
+	   		   .attr("r", function(d) {
+	        		return 5 ;
+	   			});
+
+	   		// triangle
+	   		svg.selectAll("polygon")
+			   .data(data_pos)
+			   .enter()
+			   .append("polygon")
+			   .style("stroke","red")
+			   .attr("fill","none")
+			   .attr("points", function(d){
+				   	var top_X = String(xScale(d[0]) );
+		   			
+		   			var top_Y = String(yScale_log(d[1] + 1) - 5 );
+		   			
+		   			var left_X = String(xScale(d[0]) - 5);
+		   			
+		   			var left_Y = String(yScale_log(d[1] + 1) + 5);
+		   			
+		   			var right_X = String(xScale(d[0])+ 5);
+		   			
+		   			var right_Y = String(yScale_log(d[1] + 1) + 5);
+		   				var val = top_X + "," + top_Y + "," + left_X + "," + left_Y + "," + right_X + "," + right_Y;
+		   				console.log(val);
+		   				return val
+				   });
+
+
+
+		});
+
+        </script>
+    </body>
+</html>

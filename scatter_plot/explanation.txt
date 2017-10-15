@@ -1,0 +1,4 @@
+Q3.
+A. The first combination is better for separating the classes because when the two features grow larger, the person tend to be positive on diabetes. In the second diagram, the two combination are crowded together.
+
+C. When the relationship of the two features on x and y axis is square root or log, their relationship on the plane is expressed better with square root scale or log scale

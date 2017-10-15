@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8"></meta>
+	<head>
+		<title>Chunlin Wang's Choropleth</title>
+		<style type="text/css">
+			.path:hover{
+				stroke-opacity:1;
+			}
+		</style>
+		<script type="text/javascript" src="../lib/d3.v3.min.js"></script>
+		<script type="text/javascript" src="../lib/topojson.v1.min.js"></script>
+		<script type="text/javascript" src="../lib/d3-queue.v3.min.js"></script>
+		<script type="text/javascript" src="../lib/d3.tip.v0.6.3.js"></script>
+	</head>
+	<body>
+		<script type="text/javascript">
+			var margin = {top: 100, right: 20, bottom: 20, left: 100}
+			var height = 1000
+			var width = 1200
+			var padding = 100
+			
+
+			d3.queue()
+				.defer(d3.csv, "median_ages.csv")
+				.defer(d3.json, "median_earnings.json")
+				.defer(d3.json, "us.json")
+				.await(drawChoropleth);
+
+			function drawChoropleth(error, ages, earnings, us)
+			{
+				if (error) throw error;
+
+				var svg = d3.select("body")
+							.append("svg")
+							.attr("height", height)
+							.attr("width", width)
+				 			.append("g")
+				   			.attr("transform", "translate(" + padding + "," + padding + ")");
+
+				var path = d3.geo.path();
+
+                var color = d3.scale.linear()  
+                       				.domain([10000, 35000])
+                    				.range(["white", "blue"]);
+
+
+	            var tip = d3.tip().attr('class', 'd3-tip').html(function(d) { return d; });
+
+				svg.append("g")
+			       .attr("class", "states")
+			       .selectAll("path")
+			       .data( topojson.feature(us, us.objects.states).features)
+			       .enter()
+			       .append("path")
+			       .attr("d", path)
+			       .attr("fill", function(d){
+						var i = 0;
+						while(i<earnings.length){
+							if(earnings[i].id == d.id) break;
+							i++;
+						}
+						return color(earnings[i].median_earnings);
+					})
+			       .style("opacity", 0.8)
+			       .call(tip)
+			       .on("mouseover", function(d){
+						var ageInfo = [];
+						var tipStr = "";
+						ages.forEach(function(a){
+							if(a.id == d.id){
+								ageInfo.push([a.name, a.median_age]);
+							}
+						});
+						ageInfo.sort(function(a,b){
+							return b[1]-a[1];
+						})
+						var count = 5;
+						if( ageInfo.length < 5) count = ageInfo.length;
+						for(var i = 0; i < count; i++){
+							tipStr = tipStr + ageInfo[i][0] + "( Median Age:" + ageInfo[i][1]+ ")"+"</br>";
+			       		}
+			       		tip.show(tipStr)						
+					})
+					.on("mouseout", tip.hide)
+
+			    // add a legend
+
+                var legend = svg.selectAll(".legend")
+		                        .data(color.ticks(10).slice(1))
+		                        .enter()
+		                        .append("g")
+		                        .attr("class", "legend")
+		                        .attr("transform", function(d, i) {
+		                            return "translate(" + (width - 200) + "," + (30 + i * 30) + ")";
+		                        })
+		                        .attr("opacity", 0.8)
+		                       
+		            legend.append("rect")
+                          .attr("width", 30)
+                          .attr("height", 30)
+                          .style("fill", color)
+                          .attr("opacity", 0.8)
+
+                    legend.append("text")
+                          .attr("x", 35)
+                          .attr("y", 10)
+                          .attr("dy", ".35em")
+                          .text(function(d) { return "$ " + Math.round(d); })
+
+
+
+
+
+			}
+
+
+		</script>
+	</body>

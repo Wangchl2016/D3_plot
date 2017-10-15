@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8"></meta>
+	<head>
+		<title>Chunlin Wang's Sankey Chart</title>
+		<style type="text/css">
+			.link:hover{
+				stroke-opacity:0.7;
+			}
+		</style>
+		<script type="text/javascript" src="../lib/d3.v3.min.js"></script>
+		<script type="text/javascript" src="../lib/sankey.js"></script>
+		<script type="text/javascript" src="../lib/d3-queue.v3.min.js"></script>
+		<script type="text/javascript" src="../lib/d3.tip.v0.6.3.js"></script>
+	</head>
+	<body>
+		<script type="text/javascript">
+
+			var margin = {top: 20, right: 20, bottom: 20, left: 20}
+			var height = 1000
+			var width = 800
+			var color = d3.scale.category20()
+
+			d3.queue()
+				.defer(d3.csv, "races.csv")
+				.defer(d3.csv, "teams.csv")
+				.await(drawSankey);
+
+			// draw Sankey Chart
+			function drawSankey(error, races, teams){
+				if(error) 
+					throw error;
+
+				var svg = d3.select("body")
+							.append("svg")
+							.attr("height", height)
+							.attr("width", width)
+				 			.append("g")
+				   			.attr("transform", "translate(" + margin.left + ", " + margin.top + ",");
+
+				chart = {"nodes" : [], "links" : []};
+
+				races.forEach(function(d){
+					chart.nodes.push({"name":d.race});
+					chart.nodes.push({"name":d.driver});
+					chart.links.push({"source": d.race,
+									  "target": d.driver,
+									  "value":+d.points});
+				
+				});
+
+				teams.forEach(function(d){
+					chart.nodes.push({"name": d.driver});
+					chart.nodes.push({"name":d.team});
+					chart.links.push({"source":d.driver,
+									  "target":d.team,
+									  "value": +d.points});
+				});
+
+				// Group data by name
+				chart.nodes = d3.keys(d3.nest()
+					.key(function(d){
+						return d.name;
+					})
+					.map(chart.nodes));
+
+				// covert it to json like data format
+				chart.links.forEach(function(d, i){
+					chart.links[i].source = chart.nodes.indexOf(chart.links[i].source);
+					chart.links[i].target = chart.nodes.indexOf(chart.links[i].target);
+				});
+
+				chart.nodes.forEach(function(d, i){
+					chart.nodes[i] = {"name": d};
+				});
+
+	            var sankey = d3 .sankey()
+								.size([width, height])
+								.nodes(chart.nodes)
+								.links(chart.links)
+								.layout(32);
+				
+				// add node	
+				var node =	svg.selectAll(".node")
+							   .data(chart.nodes)
+							   .enter()
+							   .append("g")
+							   .attr("class", "node")
+							   .attr("font-family", "sans-serif")
+    						   .attr("font-size", 10)
+							   .attr("transform", function(d) { 
+                                    return "translate(" + d.x + "," + d.y + ")"; 
+                               });
+
+				node.append("rect")
+				    //.attr("x", function(d) { return d.dx - 23; })
+      				//.attr("y", function(d) { return d.dy/ 2 - 15; })
+					.attr("height", function(d){
+						return d.dy;
+				  	})
+				  	.attr("width", sankey.nodeWidth())
+			  		.style("fill", function(d){
+			  			return d.color = color(d.name.replace(/ .*/, ""));
+			  		})
+			  		.attr("stroke", "gray")
+
+				node.append("text")
+					.attr("x", function(d) { return d.dx - 30; })
+				    .attr("y", function(d) { return d.dy / 2; })
+				    .attr("dy", ".35em")
+				    .attr("text-anchor", "end")
+				    .attr("font-family", "sans-serif")
+    				.attr("font-size", 12)
+				    .attr("transform", null)
+				    .text(function(d) { return d.name; })
+				    .filter(function(d) { return d.x < width / 2; })
+				    .attr("x", 5 + sankey.nodeWidth())
+				    .attr("text-anchor", "start")
+				    .attr("font-family", "sans-serif")
+    				.attr("font-size", 12);
+
+    			// tooltip
+    			var tip = d3.tip()
+    						.attr('class', 'd3-tip')
+    						.html(function(d) { 
+                        		return d.source.name + "\n—\n" + d.target.name + "\n:\n" + d.value; 
+                    		});
+
+    			// append links
+    			svg.selectAll(".links")
+				   .data(chart.links)
+				   .enter()
+				   .append("path")
+				   .attr("class", "link")
+      			   .attr("d", sankey.link())
+      			   .attr("stroke","gray")
+      			   .attr("fill","none")
+      			   .attr("stroke-opacity",0.4)
+      			   .style("stroke-width", function(d) { return Math.max(1, d.dy); })
+      			   .call(tip)
+      			   .on('mouseover', tip.show)
+                   .on('mouseout', tip.hide);
+			}
+		</script>
+	</body>
